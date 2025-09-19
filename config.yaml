@@ -1,0 +1,29 @@
+token: "o7RAUIm3CIhMP3BBnU8siEZ00JS5EExM"
+host: "0.0.0.0"   # 让外网也能访问
+port: 11220    # Flask 启动端口
+
+items:
+  - type: handleprogram
+    id: wechat
+    process_name: "Weixin.exe"
+    path: "D:/normal/Weixin/Weixin.exe"
+    args: ""
+    remark: "操作微信"
+
+  - type: openfile
+    id: arknights
+    path: "D:/tools/MAA/MAA.exe"
+    args: ""
+    remark: "启动明日方舟（MAA）"
+
+  - type: openfile
+    id: steam
+    path: "D:/game/steam/steam.exe"
+    args: ""
+    remark: "启动Steam"
+
+  - type: runcommand
+    id: list_dir
+    command: "dir"
+    args: ""
+    remark: "列出当前目录文件"
