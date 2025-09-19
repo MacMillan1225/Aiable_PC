@@ -11,10 +11,21 @@ items:
     remark: "操作微信"
 
   - type: openfile
+    id: QQ
+    path: "D:/normal/QQNT/QQ.exe"
+    args: ""
+    remark: "启动QQ"
+
+  - type: openfile
     id: arknights
     path: "D:/tools/MAA/MAA.exe"
     args: ""
     remark: "启动明日方舟（MAA）"
+
+  - type: killprocess
+    id: kill_arknights
+    process_name: "MAA.exe"
+    remark: "关闭明日方舟（MAA）"
 
   - type: openfile
     id: steam
