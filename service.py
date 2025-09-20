@@ -3,11 +3,11 @@ import os
 import logging
 import traceback
 from flask import Flask, request, jsonify
-import subprocess
 import yaml
 import psutil
 import socket
 import tempfile
+import subprocess
 
 # ------------------ 获取运行路径 ------------------
 if getattr(sys, 'frozen', False):
@@ -84,7 +84,8 @@ def expand_items(items_list):
             expanded.append({
                 "type": "killprocess",
                 "id": _id,
-                "process_name": item.get("process_name")
+                "process_name": item.get("process_name"),
+                "kill_all": item.get("kill_all", False)
             })
         else:
             expanded.append(item)
@@ -148,15 +149,26 @@ class CommandHandler:
 
     @staticmethod
     @require_token
-    def killprocess_handler(process_name):
+    def killprocess_handler(process_name, kill_all=False):
         try:
+            killed_pids = []
             for proc in psutil.process_iter(['pid', 'name']):
                 if proc.info['name'] == process_name:
                     proc.kill()
                     logger.info(f"Process {process_name} with PID {proc.info['pid']} terminated.")
-                    return jsonify({"status": f"Process {process_name} terminated."})
-            logger.warning(f"Process {process_name} not found.")
-            return jsonify({"error": f"Process {process_name} not found."}), 404
+                    killed_pids.append(proc.info['pid'])
+                    if not kill_all:
+                        return jsonify({"status": f"Process {process_name} terminated."})
+            if killed_pids:
+                if kill_all:
+                    return jsonify({
+                        "status": f"All processes named {process_name} terminated.",
+                        "pids": killed_pids
+                    })
+                # 理论不会到这里，因为 not kill_all 时 return 早已触发
+            else:
+                logger.warning(f"Process {process_name} not found.")
+                return jsonify({"error": f"Process {process_name} not found."}), 404
         except Exception as e:
             logger.error(f"killprocess error: {traceback.format_exc()}")
             return jsonify({"error": str(e)}), 500
@@ -180,6 +192,18 @@ class CommandHandler:
             return jsonify({"error": str(e)}), 500
 
     @staticmethod
+    @require_token
+    def openlink_handler(link):
+        try:
+            cmd = f'start "" "{link}"'
+            subprocess.Popen(cmd, shell=True)
+            logger.info(f"Opened link: {link}")
+            return jsonify({"status": f"Opened link {link}"})
+        except Exception as e:
+            logger.error(f"openlink error: {traceback.format_exc()}")
+            return jsonify({"error": str(e)}), 500
+
+    @staticmethod
     def register_routes(app_instance, items_list):
         logger.info("Registering routes...")
         for item in items_list:
@@ -196,7 +220,8 @@ class CommandHandler:
 
             elif item_type == "killprocess":
                 process_name = item.get("process_name")
-                bound_handler = lambda p=process_name: CommandHandler.killprocess_handler(p)
+                kill_all = item.get("kill_all", False)
+                bound_handler = lambda p=process_name, a=kill_all: CommandHandler.killprocess_handler(p, a)
                 app_instance.add_url_rule(f"/{item_type}/{item_id}", endpoint_name, bound_handler, methods=["GET"])
                 logger.info(f"Registered {item_type}/{item_id}")
 
@@ -204,6 +229,12 @@ class CommandHandler:
                 cmd = item.get("command")
                 args = item.get("args", "")
                 bound_handler = lambda c=cmd, a=args: CommandHandler.runcommand_handler(c, a)
+                app_instance.add_url_rule(f"/{item_type}/{item_id}", endpoint_name, bound_handler, methods=["GET"])
+                logger.info(f"Registered {item_type}/{item_id}")
+
+            elif item_type == "openlink":
+                link = item.get("link")
+                bound_handler = lambda l=link: CommandHandler.openlink_handler(l)
                 app_instance.add_url_rule(f"/{item_type}/{item_id}", endpoint_name, bound_handler, methods=["GET"])
                 logger.info(f"Registered {item_type}/{item_id}")
 

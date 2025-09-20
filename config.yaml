@@ -1,4 +1,4 @@
-token: "o7RAUIm3CIhMP3BBnU8siEZ00JS5EExM"
+token: "DO54ZFwyQk3hIZ1OvVJFyVIsV5EVuonY"
 host: "0.0.0.0"   # 让外网也能访问
 port: 11220    # Flask 启动端口
 
@@ -8,13 +8,8 @@ items:
     process_name: "Weixin.exe"
     path: "D:/normal/Weixin/Weixin.exe"
     args: ""
+    kill_all: true
     remark: "操作微信"
-
-  - type: openfile
-    id: QQ
-    path: "D:/normal/QQNT/QQ.exe"
-    args: ""
-    remark: "启动QQ"
 
   - type: openfile
     id: arknights
@@ -23,18 +18,18 @@ items:
     remark: "启动明日方舟（MAA）"
 
   - type: killprocess
-    id: kill_arknights
-    process_name: "MAA.exe"
-    remark: "关闭明日方舟（MAA）"
-
-  - type: openfile
     id: steam
-    path: "D:/game/steam/steam.exe"
-    args: ""
+    process_name: "steam.exe"
+    kill_all: false
     remark: "启动Steam"
 
   - type: runcommand
-    id: list_dir
-    command: "dir"
+    id: shutdown
+    command: "shutdown -s -t 10"
     args: ""
-    remark: "列出当前目录文件"
+    remark: "一键关机"
+
+  - type: openlink
+    id: baidu
+    link: "https://www.baidu.com"
+    remark: "打开百度"
