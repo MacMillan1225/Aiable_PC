@@ -69,7 +69,7 @@ items:
 ### 配置项说明
 
 #### 通用字段
-- `type`: 操作类型 (`handleprogram`, `openfile`, `killprocess`, `runcommand`)
+- `type`: 操作类型 (`handleprogram`, `openfile`, `killprocess`, `runcommand`, `openlink`)
 - `id`: 唯一标识符（同一类型内必须唯一）
 - `remark`: 备注说明（可选）
 
@@ -85,10 +85,14 @@ items:
 
 - **killprocess**:
   - `process_name`: 要终止的进程名
+  - `kill_all`: 是否终止所有匹配进程（默认 `false`）
 
 - **runcommand**:
   - `command`: 要执行的命令
   - `args`: 命令参数
+
+- **openlink**:
+  -  `link`: 要打开的链接
 
 ## API 使用
 
