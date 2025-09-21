@@ -40,8 +40,8 @@ items:
   # handleprogram 类型（自动展开为 openfile + killprocess）
   - type: handleprogram
     id: wechat            # 唯一标识符
-    process_name: "Weixin.exe"  # 进程名（用于终止）
-    path: "C:/path/to/Weixin.exe"  # 程序路径（用于启动）
+    process_name: "Weixin.exe"  # 进程名（用于终止）支持列表
+    path: "C:/path/to/Weixin.exe"  # 程序路径（用于启动）支持列表
     args: ""              # 启动参数
     remark: "操作微信"     # 备注说明
 

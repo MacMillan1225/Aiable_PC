@@ -134,15 +134,30 @@ def require_token(func):
 
 class CommandHandler:
     @staticmethod
+    def _process_items(_items, handler_func, *args):
+        # 如果是字符串，转成列表形式
+        if isinstance(_items, str):
+            _items = [_items]
+
+        for item in _items:
+            handler_func(item, *args)
+
+        return jsonify({"status": f"Processed items: {', '.join(_items)}"})
+
+    @staticmethod
     @require_token
     def openfile_handler(file_path, default_args=""):
         try:
-            extra_args_list = [str(value) for value in request.args.values()]
-            all_args = " ".join([default_args] + extra_args_list).strip()
-            cmd = f'start "" "{file_path}" {all_args}'.strip()
-            subprocess.Popen(cmd, shell=True)
-            logger.info(f"Opened: {file_path} {all_args}")
-            return jsonify({"status": f"Opened {file_path} {all_args}"})
+            # 处理每个文件
+            def open_file(file, args):
+                extra_args_list = [str(value) for value in request.args.values()]
+                all_args = " ".join([args] + extra_args_list).strip()
+                cmd = f'start "" "{file}" {all_args}'.strip()
+                subprocess.Popen(cmd, shell=True)
+                logger.info(f"Opened: {file} {all_args}")
+
+            # 调用 _process_items，处理单个或多个文件
+            return CommandHandler._process_items(file_path, open_file, default_args)
         except Exception as e:
             logger.error(f"openfile error: {traceback.format_exc()}")
             return jsonify({"error": str(e)}), 500
@@ -151,24 +166,28 @@ class CommandHandler:
     @require_token
     def killprocess_handler(process_name, kill_all=False):
         try:
-            killed_pids = []
-            for proc in psutil.process_iter(['pid', 'name']):
-                if proc.info['name'] == process_name:
-                    proc.kill()
-                    logger.info(f"Process {process_name} with PID {proc.info['pid']} terminated.")
-                    killed_pids.append(proc.info['pid'])
-                    if not kill_all:
-                        return jsonify({"status": f"Process {process_name} terminated."})
-            if killed_pids:
-                if kill_all:
-                    return jsonify({
-                        "status": f"All processes named {process_name} terminated.",
-                        "pids": killed_pids
-                    })
-                # 理论不会到这里，因为 not kill_all 时 return 早已触发
-            else:
-                logger.warning(f"Process {process_name} not found.")
-                return jsonify({"error": f"Process {process_name} not found."}), 404
+            # 处理每个进程
+            def kill_process(pname, _kill_all):
+                killed_pids = []
+                for proc in psutil.process_iter(['pid', 'name']):
+                    if proc.info['name'] == pname:
+                        proc.kill()
+                        logger.info(f"Process {pname} with PID {proc.info['pid']} terminated.")
+                        killed_pids.append(proc.info['pid'])
+                        if not _kill_all:
+                            return jsonify({"status": f"Process {pname} terminated."})
+                if killed_pids:
+                    if _kill_all:
+                        return jsonify({
+                            "status": f"All processes named {pname} terminated.",
+                            "pids": killed_pids
+                        })
+                    return None
+                else:
+                    return jsonify({"error": f"Process {pname} not found."}), 404
+
+            # 调用 _process_items，处理单个或多个进程
+            return CommandHandler._process_items(process_name, kill_process, kill_all)
         except Exception as e:
             logger.error(f"killprocess error: {traceback.format_exc()}")
             return jsonify({"error": str(e)}), 500

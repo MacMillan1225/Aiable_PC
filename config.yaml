@@ -18,10 +18,10 @@ items:
     remark: "启动明日方舟（MAA）"
 
   - type: killprocess
-    id: steam
-    process_name: "steam.exe"
+    id: arknights
+    process_name: ["MAA.exe", "MuMuNxMain.exe", "MuMuNxDevice.exe"]
     kill_all: false
-    remark: "启动Steam"
+    remark: "关闭明日方舟"
 
   - type: runcommand
     id: shutdown
